@@ -1,0 +1,32 @@
+{
+    "name": "Plex Debrid Dev Container",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11",
+    "workspaceFolder": "/workspace",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.black-formatter"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "sh",
+                "python.formatting.provider": "black",
+                "editor.formatOnSave": true,
+                "git.path": "/usr/bin/git"
+            }
+        }
+    },
+    "forwardPorts": [
+        8002
+    ],
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/workspace,type=bind"
+    ],
+    "runArgs": [
+        "--name=plex_debrid_dev",
+        "--hostname=plex_debrid_dev",
+        "--dns=8.8.8.8",
+        "--dns=8.8.4.4"
+    ],
+    "postCreateCommand": "pip install -r /workspace/requirements.txt && pip install black"
+}
