@@ -29,6 +29,13 @@ One variation to note is that you'll need to set the ENV vars `CLIENT_ID` and `C
 	<tbody>
 		<tr>
             <td align="center">
+                <a href="https://github.com/I-am-PUID-0">
+                    <img src="https://avatars.githubusercontent.com/u/36779668?v=4" width="64;" alt="I-am-PUID-0"/>
+                    <br />
+                    <sub><b>I-am-PUID-0</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/itsToggle">
                     <img src="https://avatars.githubusercontent.com/u/71379623?v=4" width="64;" alt="itsToggle"/>
                     <br />
@@ -63,6 +70,8 @@ One variation to note is that you'll need to set the ENV vars `CLIENT_ID` and `C
                     <sub><b>KaceCottam</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/KamalF">
                     <img src="https://avatars.githubusercontent.com/u/8170277?v=4" width="64;" alt="KamalF"/>
@@ -70,8 +79,6 @@ One variation to note is that you'll need to set the ENV vars `CLIENT_ID` and `C
                     <sub><b>KamalF</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/maspuce">
                     <img src="https://avatars.githubusercontent.com/u/688714?v=4" width="64;" alt="maspuce"/>
@@ -107,6 +114,8 @@ One variation to note is that you'll need to set the ENV vars `CLIENT_ID` and `C
                     <sub><b>mcorcoran</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/piratsch">
                     <img src="https://avatars.githubusercontent.com/u/106690882?v=4" width="64;" alt="piratsch"/>
