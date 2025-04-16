@@ -1,6 +1,6 @@
 {
     "name": "Plex Debrid Dev Container",
-    "image": "mcr.microsoft.com/devcontainers/python:3.11",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
     "workspaceFolder": "/workspace",
     "customizations": {
         "vscode": {
@@ -28,5 +28,5 @@
         "--dns=8.8.8.8",
         "--dns=8.8.4.4"
     ],
-    "postCreateCommand": "pip install -r /workspace/requirements.txt && pip install black"
+    "postCreateCommand": "sudo apt update && sudo apt install -y curl && curl -sSL https://install.python-poetry.org | python - && export PATH=\"$HOME/.local/bin:$PATH\" && poetry config virtualenvs.create false && poetry install --no-root"
 }
