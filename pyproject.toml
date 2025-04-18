@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plex_debrid"
-version = "3.2.0"
+version = "3.3.0"
 description = ""
 authors = ["I-am-PUID-0 <36779668+I-am-PUID-0@users.noreply.github.com>"]
 readme = "README.md"
