@@ -4,7 +4,7 @@ from settings import settings_list
 router = APIRouter()
 
 
-@router.get("/settings")
+@router.get("/")
 def get_all_settings():
     result = []
     for category, items in settings_list:
@@ -15,7 +15,7 @@ def get_all_settings():
     return result
 
 
-@router.get("/settings/{key}")
+@router.get("/{key}")
 def get_setting_by_key(key: str):
     for _, items in settings_list:
         for s in items:

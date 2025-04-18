@@ -1,10 +1,9 @@
 from base import *
-
+from ui import ui_settings
 import content
 import scraper
 import releases
 import debrid
-from ui import ui_settings
 
 
 class setting:
@@ -30,17 +29,20 @@ class setting:
         return {
             "name": self.name,
             "prompt": self.prompt,
+            # "cls": self.cls,
             "key": self.key,
-            "value": self.get(),
             "required": self.required,
-            "help": self.help,
-            "hidden": self.hidden,
             "entry": self.entry,
+            "test": self.test,
+            "hidden": self.hidden,
             "subclass": self.subclass,
             "oauth": self.oauth,
+            "help": self.help,
             "moveable": self.moveable,
+            "preflight": self.preflight,
             "radio": self.radio,
-            "special": self.special
+            "special": self.special,
+            "value": self.get()
         }
 
     def input(self):
