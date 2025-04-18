@@ -8,7 +8,7 @@ RUN apk add --no-cache curl build-base libffi-dev openssl-dev
 
 ENV POETRY_HOME="/home/appuser/.poetry"
 ENV PATH="$POETRY_HOME/bin:$PATH"
-RUN curl -sSL https://install.python-poetry.org | python3 - --no-interaction && \
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
     poetry config virtualenvs.create false
 
 COPY --chown=appuser:appuser . .
