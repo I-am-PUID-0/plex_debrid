@@ -4,7 +4,7 @@ import releases
 # (required) Name of the Debrid service
 name = "Torbox"
 short = "TB"
-# (required) Authentification of the Torbox service, can be oauth aswell. Create a setting for the required variables in the ui.settings_list. For an oauth example check the trakt authentification.
+# (required) Authentication of the Torbox service, can be oauth as well. Create a setting for the required variables in the ui.settings_list. For an oauth example check the trakt authentication.
 api_key = ""
 # Define Variables
 session = requests.Session()
@@ -19,6 +19,7 @@ errors = [
 
 def setup(cls, new=False):
     from debrid.services import setup
+
     setup(cls, new)
 
 
@@ -31,14 +32,21 @@ def logerror(response):
                 desc = error[1]
         ui_print("[torbox] error: (" + str(response.status_code) + desc + ") " + str(response.content))
     if response.status_code == 401:
-        ui_print("[torbox] error: (401 unauthorized): torbox api key does not seem to work. check your torbox settings.")
+        ui_print(
+            "[torbox] error: (401 unauthorized): torbox api key does not seem to work. check your torbox settings."
+        )
     if response.status_code == 403:
-        ui_print("[torbox] error: (403 unauthorized): You may have attempted to add an infringing torrent or your torbox account is locked or you dont have premium.")
+        ui_print(
+            "[torbox] error: (403 unauthorized): You may have attempted to add an infringing torrent or your torbox account is locked or you dont have premium."
+        )
 
 
 # Get Function
 def get(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36', 'authorization': 'Bearer ' + api_key}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36",
+        "authorization": "Bearer " + api_key,
+    }
     response = None
     try:
         ui_print("[torbox] (get): " + url, debug=ui_settings.debug)
@@ -58,11 +66,18 @@ def get(url):
 
 # Post Function
 def post(url, data=None, json_data=None):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36', 'authorization': 'Bearer ' + api_key}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36",
+        "authorization": "Bearer " + api_key,
+    }
     response = None
     try:
         ui_print("[torbox] (post): " + url + " with data " + repr(data if data else json_data), debug=ui_settings.debug)
-        response = session.post(url, headers=headers, json=json.dumps(json_data)) if json_data else session.post(url, headers=headers, data=data)
+        response = (
+            session.post(url, headers=headers, json=json.dumps(json_data))
+            if json_data
+            else session.post(url, headers=headers, data=data)
+        )
         logerror(response)
         response = json.loads(response.content, object_hook=lambda d: SimpleNamespace(**d))
         if hasattr(response, "detail"):
@@ -87,7 +102,7 @@ class file:
         self.id = id
         self.name = name
         self.size = size / 1000000000
-        self.match = ''
+        self.match = ""
         wanted = False
         unwanted = False
         for key, wanted_pattern in wanted_list:
@@ -98,7 +113,7 @@ class file:
 
         if not wanted:
             for key, unwanted_pattern in unwanted_list:
-                if unwanted_pattern.search(self.name) or self.name.endswith('.exe') or self.name.endswith('.txt'):
+                if unwanted_pattern.search(self.name) or self.name.endswith(".exe") or self.name.endswith(".txt"):
                     unwanted = True
                     break
 
@@ -125,9 +140,9 @@ class version:
 
 
 # (required) Download Function.
-def download(element, stream=True, query='', force=False):
+def download(element, stream=True, query="", force=False):
     cached = element.Releases
-    if query == '':
+    if query == "":
         query = element.deviation()
     wanted = [query]
     if not isinstance(element, releases.release):
@@ -138,26 +153,36 @@ def download(element, stream=True, query='', force=False):
             if stream:
                 release.size = 0
                 for version in release.files:
-                    if hasattr(version, 'files'):
+                    if hasattr(version, "files"):
                         if len(version.files) > 0 and version.wanted > len(wanted) / 2 or force:
                             cached_ids = []
                             for file in version.files:
                                 cached_ids += [file.id]
                             try:
-                                response = post('https://api.torbox.app/v1/api/torrents/createtorrent', {'magnet': str(release.download[0]), 'seed': 3, 'allow_zip': 'false'})
+                                response = post(
+                                    "https://api.torbox.app/v1/api/torrents/createtorrent",
+                                    {"magnet": str(release.download[0]), "seed": 3, "allow_zip": "false"},
+                                )
 
-                                if response is None or not response.success or not hasattr(response, "data") or not hasattr(response.data, "torrent_id"):
-                                    ui_print('[torbox] error: could not add magnet for release: ' + release.title)
+                                if (
+                                    response is None
+                                    or not response.success
+                                    or not hasattr(response, "data")
+                                    or not hasattr(response.data, "torrent_id")
+                                ):
+                                    ui_print("[torbox] error: could not add magnet for release: " + release.title)
                                     continue
                                 torrent_id = response.data.torrent_id
 
                             except Exception as e:
-                                ui_print('[torbox] error: could not add magnet for release: ' + release.title + ' ' + str(e))
+                                ui_print(
+                                    "[torbox] error: could not add magnet for release: " + release.title + " " + str(e)
+                                )
                                 continue
-                            response = get('https://api.torbox.app/v1/api/torrents/mylist?bypass_cache=true')
+                            response = get("https://api.torbox.app/v1/api/torrents/mylist?bypass_cache=true")
                             selected_torrent = [s for s in response.data if s.id == torrent_id]
                             if len(selected_torrent) == 0:
-                                ui_print('[torbox] error: unexpected mismatch after adding torrent: ' + release.title)
+                                ui_print("[torbox] error: unexpected mismatch after adding torrent: " + release.title)
                                 continue
                             selected_torrent = selected_torrent[0]
 
@@ -166,48 +191,79 @@ def download(element, stream=True, query='', force=False):
                                 actual_title = selected_torrent.name
                                 release.download = selected_torrent.files
                             else:
-                                if hasattr(selected_torrent, "download_state") and selected_torrent.download_state in ["downloading", "paused", "stalled (no seeds)"]:
+                                if hasattr(selected_torrent, "download_state") and selected_torrent.download_state in [
+                                    "downloading",
+                                    "paused",
+                                    "stalled (no seeds)",
+                                ]:
                                     if hasattr(element, "version"):
                                         debrid_uncached = True
                                         for i, rule in enumerate(element.version.rules):
-                                            if (rule[0] == "cache status") and (rule[1] == 'requirement' or rule[1] == 'preference') and (rule[2] == "cached"):
+                                            if (
+                                                (rule[0] == "cache status")
+                                                and (rule[1] == "requirement" or rule[1] == "preference")
+                                                and (rule[2] == "cached")
+                                            ):
                                                 debrid_uncached = False
                                         if debrid_uncached:
                                             import debrid as db
+
                                             release.files = version.files
-                                            db.downloading += [element.query() + ' [' + element.version.name + ']']
-                                            ui_print('[torbox] adding uncached release: ' + release.title)
+                                            db.downloading += [element.query() + " [" + element.version.name + "]"]
+                                            ui_print("[torbox] adding uncached release: " + release.title)
                                             return True
                                 else:
-                                    ui_print('[torbox] error: queuing this torrent returned an unsupported state. Select a different torrent.')
-                                    post('https://api.torbox.app/v1/api/torrents/controltorrent', json_data={'torrent_id': torrent_id, 'operation': 'Delete'})
+                                    ui_print(
+                                        "[torbox] error: queuing this torrent returned an unsupported state. Select a different torrent."
+                                    )
+                                    post(
+                                        "https://api.torbox.app/v1/api/torrents/controltorrent",
+                                        json_data={"torrent_id": torrent_id, "operation": "Delete"},
+                                    )
                                     continue
                             if len(release.download) > 0:
                                 release.files = version.files
-                                ui_print('[torbox] adding cached release: ' + release.title)
+                                ui_print("[torbox] adding cached release: " + release.title)
                                 if not actual_title == "":
                                     release.title = actual_title
                                 return True
-                ui_print('[torbox] error: no streamable version could be selected for release: ' + release.title)
+                ui_print("[torbox] error: no streamable version could be selected for release: " + release.title)
                 return False
             else:
-                response = post('https://api.torbox.app/v1/api/torrents/createtorrent', {'magnet': str(release.download[0]), 'seed': 3, 'allow_zip': 'false'})
-                ui_print('[torbox] adding uncached release: ' + release.title + (" with torrent_id=" + str(response.data.torrent_id) if hasattr(response, "data") and hasattr(response.data, "torrent_id") else ""))
+                response = post(
+                    "https://api.torbox.app/v1/api/torrents/createtorrent",
+                    {"magnet": str(release.download[0]), "seed": 3, "allow_zip": "false"},
+                )
+                ui_print(
+                    "[torbox] adding uncached release: "
+                    + release.title
+                    + (
+                        " with torrent_id=" + str(response.data.torrent_id)
+                        if hasattr(response, "data") and hasattr(response.data, "torrent_id")
+                        else ""
+                    )
+                )
                 return True
         else:
-            ui_print('[torbox] error: rejecting release: "' + release.title + '" because it doesnt match the allowed deviation "' + query + '"')
+            ui_print(
+                '[torbox] error: rejecting release: "'
+                + release.title
+                + '" because it doesnt match the allowed deviation "'
+                + query
+                + '"'
+            )
     return False
 
 
 # (required) Check Function
 def check(element, force=False):
     if force:
-        wanted = ['.*']
+        wanted = [".*"]
     else:
         wanted = element.files()
     unwanted = releases.sort.unwanted
-    wanted_patterns = list(zip(wanted, [regex.compile(r'(' + key + ')', regex.IGNORECASE) for key in wanted]))
-    unwanted_patterns = list(zip(unwanted, [regex.compile(r'(' + key + ')', regex.IGNORECASE) for key in unwanted]))
+    wanted_patterns = list(zip(wanted, [regex.compile(r"(" + key + ")", regex.IGNORECASE) for key in wanted]))
+    unwanted_patterns = list(zip(unwanted, [regex.compile(r"(" + key + ")", regex.IGNORECASE) for key in unwanted]))
 
     hashes = set()
     for release in element.Releases[:]:
@@ -223,7 +279,10 @@ def check(element, force=False):
     ui_print("[torbox] checking and sorting all release files ...", ui_settings.debug)
     hashes = list(hashes)  # so we can splice it
     while offset < len(hashes):
-        response = get('https://api.torbox.app/v1/api/torrents/checkcached?format=list&list_files=true&hash=' + ','.join(hashes[offset:offset + hash_limit]))
+        response = get(
+            "https://api.torbox.app/v1/api/torrents/checkcached?format=list&list_files=true&hash="
+            + ",".join(hashes[offset : offset + hash_limit])
+        )
         offset += hash_limit
         for release in element.Releases:
             release.files = []
@@ -231,12 +290,16 @@ def check(element, force=False):
             # for each of the releases, collate file details and cache status
             if hasattr(response, "data") and response.data is not None:
                 for t in response.data:
-                    if t.hash == release_hash and 'TB' not in release.cached:  # ignore duplicates if t appears more than once
+                    if (
+                        t.hash == release_hash and "TB" not in release.cached
+                    ):  # ignore duplicates if t appears more than once
                         version_files = []
                         for file_ in t.files:
                             debrid_file = file(file_, file_.name, file_.size, wanted_patterns, unwanted_patterns)
                             version_files.append(debrid_file)
-                        release.files += [version(version_files), ]
+                        release.files += [
+                            version(version_files),
+                        ]
 
                         # select cached version that has the most needed, most wanted, least unwanted files and most files overall
                         release.files.sort(key=lambda x: len(x.files), reverse=True)
@@ -245,6 +308,6 @@ def check(element, force=False):
                         release.wanted = release.files[0].wanted
                         release.unwanted = release.files[0].unwanted
                         release.size = release.files[0].size
-                        release.cached += ['TB']
+                        release.cached += ["TB"]
 
         ui_print("done", ui_settings.debug)

@@ -1,20 +1,24 @@
 from base import *
-#import child modules
+
+# import child modules
 from debrid import services
 from ui.ui_print import *
 
 tracker = []
 downloading = []
-uncached = 'true'
+uncached = "true"
+
 
 # Download Method:
-def download(element, stream=True, query='', force=False):
+def download(element, stream=True, query="", force=False):
     downloaded_files = []
     if stream:
         cached_releases = copy.deepcopy(element.Releases)
         downloaded = False
         for release in cached_releases:
-            element.Releases = [release, ]
+            element.Releases = [
+                release,
+            ]
             if len(tracker) > 0:
                 for t, s in tracker:
                     if regex.search(t, release.source, regex.I):
@@ -24,9 +28,9 @@ def download(element, stream=True, query='', force=False):
                     if service.download(element, stream=stream, query=query, force=force):
                         downloaded = True
                         downloaded_files += element.Releases[0].files
-                        if not hasattr(element,"existing_releases"):
+                        if not hasattr(element, "existing_releases"):
                             element.existing_releases = []
-                        if not hasattr(element,"downloaded_releases"):
+                        if not hasattr(element, "downloaded_releases"):
                             element.downloaded_releases = []
                         element.existing_releases += [element.Releases[0].title]
                         element.downloaded_releases += [element.Releases[0].title]
@@ -40,7 +44,9 @@ def download(element, stream=True, query='', force=False):
         scraped_releases = copy.deepcopy(element.Releases)
         downloaded = False
         for release in scraped_releases:
-            element.Releases = [release, ]
+            element.Releases = [
+                release,
+            ]
             if len(tracker) > 0:
                 for t, s in tracker:
                     if regex.search(t, release.source, regex.I):
@@ -66,6 +72,7 @@ def download(element, stream=True, query='', force=False):
         if len(element.Releases) > 0:
             element.Releases[0].files = downloaded_files
         return downloaded
+
 
 # Check Method:
 def check(element, force=False):

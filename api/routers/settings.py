@@ -8,10 +8,7 @@ router = APIRouter()
 def get_all_settings():
     result = []
     for category, items in settings_list:
-        result.append({
-            "category": category,
-            "settings": [s.to_dict() for s in items]
-        })
+        result.append({"category": category, "settings": [s.to_dict() for s in items]})
     return result
 
 

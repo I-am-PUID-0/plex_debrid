@@ -2,6 +2,7 @@
 from ui.ui_print import *
 import releases
 import urllib.parse
+
 name = "mediafusion"
 
 base_url = "https://mediafusion.elfhosted.com"
@@ -16,20 +17,22 @@ def request(func, *args):
     try:
         response = func(*args)
         if hasattr(response, "status_code") and response.status_code != 200:
-            ui_print(f'[mediafusion] error {str(response.status_code)}: failed response from mediafusion. {response.content.decode("utf-8")}')
+            ui_print(
+                f'[mediafusion] error {str(response.status_code)}: failed response from mediafusion. {response.content.decode("utf-8")}'
+            )
             return []
 
     except requests.exceptions.Timeout:
-        ui_print('[mediafusion] error: request timed out.')
+        ui_print("[mediafusion] error: request timed out.")
         return []
     except Exception as e:
-        ui_print('[mediafusion] error: ' + str(e))
+        ui_print("[mediafusion] error: " + str(e))
         return []
 
     try:
         json_response = json.loads(response.content, object_hook=lambda d: SimpleNamespace(**d))
     except Exception as e:
-        ui_print('[mediafusion] error: unable to parse response:' + response.content.decode("utf-8") + " " + str(e))
+        ui_print("[mediafusion] error: unable to parse response:" + response.content.decode("utf-8") + " " + str(e))
         return []
     return json_response
 
@@ -51,6 +54,7 @@ def post(session: requests.Session, url: str, body: dict) -> requests.Response:
 def setup(cls, new=False):
     from settings import settings_list
     from scraper.services import active
+
     settings = []
     for category, allsettings in settings_list:
         for setting in allsettings:
@@ -65,7 +69,7 @@ def setup(cls, new=False):
             print("0) Back")
             indices = []
             for index, setting in enumerate(settings):
-                print(str(index + 1) + ') ' + setting.name)
+                print(str(index + 1) + ") " + setting.name)
                 indices += [str(index + 1)]
             print()
             if settings == []:
@@ -79,7 +83,7 @@ def setup(cls, new=False):
                 if not cls.name in active:
                     active += [cls.name]
                 back = True
-            elif choice == '0':
+            elif choice == "0":
                 back = True
     else:
         if not cls.name in active:
@@ -88,25 +92,31 @@ def setup(cls, new=False):
 
 def scrape(query, altquery):
     from scraper.services import active
-    if 'mediafusion' not in active:
+
+    if "mediafusion" not in active:
         return []
 
     global base_url
-    if base_url.endswith('/'):
+    if base_url.endswith("/"):
         base_url = base_url[:-1]
 
     manual_search = False
     if altquery == "(.*)":
         altquery = query
         manual_search = True
-    type = ("show" if regex.search(
-        r'(S[0-9]|complete|S\?[0-9])', altquery, regex.I) else "movie")
+    type = "show" if regex.search(r"(S[0-9]|complete|S\?[0-9])", altquery, regex.I) else "movie"
 
     if type == "show":
-        s = (regex.search(r'(?<=S)([0-9]+)', altquery, regex.I).group()
-             if regex.search(r'(?<=S)([0-9]+)', altquery, regex.I) else None)
-        e = (regex.search(r'(?<=E)([0-9]+)', altquery, regex.I).group()
-             if regex.search(r'(?<=E)([0-9]+)', altquery, regex.I) else None)
+        s = (
+            regex.search(r"(?<=S)([0-9]+)", altquery, regex.I).group()
+            if regex.search(r"(?<=S)([0-9]+)", altquery, regex.I)
+            else None
+        )
+        e = (
+            regex.search(r"(?<=E)([0-9]+)", altquery, regex.I).group()
+            if regex.search(r"(?<=E)([0-9]+)", altquery, regex.I)
+            else None
+        )
         if s is None or int(s) == 0:
             s = 1
         if e is None or int(e) == 0:
@@ -115,8 +125,8 @@ def scrape(query, altquery):
     plain_text = ""
     imdb_ids = []
     session = custom_session(get_rate_limit=float(rate_limit_sec), post_rate_limit=float(rate_limit_sec))
-    if regex.search(r'(tt[0-9]+)', altquery, regex.I):
-        imdb_ids += [regex.search(r'(tt[0-9]+)', altquery, regex.I).group()]
+    if regex.search(r"(tt[0-9]+)", altquery, regex.I):
+        imdb_ids += [regex.search(r"(tt[0-9]+)", altquery, regex.I).group()]
     elif manual_search:
         plain_text = urllib.parse.quote(query)
         try:
@@ -143,10 +153,10 @@ def scrape(query, altquery):
                 # collate all matched IMDB IDs
                 imdb_ids += [m.id for m in meta.metas]
             except Exception as e:
-                ui_print('[mediafusion] error: could not find IMDB ID. ' + str(e))
+                ui_print("[mediafusion] error: could not find IMDB ID. " + str(e))
                 return []
     else:
-        ui_print('[mediafusion] error: search missing IMDB ID for query: ' + query)
+        ui_print("[mediafusion] error: search missing IMDB ID for query: " + query)
         return []
 
     global mediafusion_encrypted_str
@@ -154,17 +164,17 @@ def scrape(query, altquery):
         try:
             mediafusion_encrypted_str = _get_encrypted_string(session)
         except Exception as e:
-            ui_print('[mediafusion] error: Failed to compute encrypted string. ' + str(e))
+            ui_print("[mediafusion] error: Failed to compute encrypted string. " + str(e))
             return []
 
-    ui_print(f'[mediafusion]: searching for {type}s with IDs [{str(imdb_ids)}]', ui_settings.debug)
-    if type == 'movie':
+    ui_print(f"[mediafusion]: searching for {type}s with IDs [{str(imdb_ids)}]", ui_settings.debug)
+    if type == "movie":
         return flatten_list([scrape_imdb_movie(session, imdb_id, plain_text) for imdb_id in imdb_ids])
     return flatten_list([scrape_imdb_series(session, imdb_id, s, e) for imdb_id in imdb_ids])
 
 
 def scrape_imdb_movie(session: requests.Session, imdb_id: str, query_text: str = None) -> list:
-    url = f'{base_url}/{mediafusion_encrypted_str}/stream/movie/{imdb_id}.json'
+    url = f"{base_url}/{mediafusion_encrypted_str}/stream/movie/{imdb_id}.json"
     response = request(get, session, url)
 
     # fallback to TV series search if we don't get any results
@@ -175,17 +185,17 @@ def scrape_imdb_movie(session: requests.Session, imdb_id: str, query_text: str =
                 meta = request(get, session, url)
                 return [scrape_imdb_series(session, m.id) for m in meta.metas]
             except Exception as e:
-                ui_print(f'[mediafusion] error: could not find IMDB ID for {query_text}. ' + str(e))
+                ui_print(f"[mediafusion] error: could not find IMDB ID for {query_text}. " + str(e))
                 return []
     return collate_releases_from_response(response)
 
 
 def scrape_imdb_series(session: requests.Session, imdb_id: str, season: int = 1, episode: int = 1) -> list:
     try:
-        url = f'{base_url}/{mediafusion_encrypted_str}/stream/series/{imdb_id}:{str(season)}:{str(episode)}.json'
+        url = f"{base_url}/{mediafusion_encrypted_str}/stream/series/{imdb_id}:{str(season)}:{str(episode)}.json"
         return collate_releases_from_response(request(get, session, url))
     except Exception as e:
-        ui_print('[mediafusion] error: ' + str(e))
+        ui_print("[mediafusion] error: " + str(e))
         return []
 
 
@@ -193,7 +203,7 @@ def collate_releases_from_response(response: requests.Response) -> list:
     scraped_releases = []
     if not hasattr(response, "streams"):
         if response is not None:
-            ui_print('[mediafusion] error: ' + repr(response))
+            ui_print("[mediafusion] error: " + repr(response))
         return scraped_releases
 
     ui_print(f"[mediafusion] found {str(len(response.streams))} streams", ui_settings.debug)
@@ -202,17 +212,27 @@ def collate_releases_from_response(response: requests.Response) -> list:
             try:
                 title = result.description.split("\n💾")[0].replace("📂 ", "")
                 info_hash = result.infoHash if hasattr(result, "infoHash") else result.url.split("?info_hash=")[1]
-                size = result.behaviorHints.videoSize / 1000000000 \
-                    if hasattr(result, "behaviorHints") and hasattr(result.behaviorHints, "videoSize") else 0
-                links = ['magnet:?xt=urn:btih:' + info_hash + '&dn=&tr=']
-                seeds = int(regex.search(r'(?<=👤 )([0-9]+)', result.description).group()) \
-                    if regex.search(r'(?<=👤 )([1-9]+)', result.description) else 0
-                source = (regex.search(r'(?<=🔗 )(.*)(?=\n|$)', result.description).group()) \
-                    if regex.search(r'(?<=🔗 )(.*)(?=\n|$)', result.description) else "unknown"
-                scraped_releases += [releases.release(
-                    '[mediafusion: '+source+']', 'torrent', title, [], size, links, seeds)]
+                size = (
+                    result.behaviorHints.videoSize / 1000000000
+                    if hasattr(result, "behaviorHints") and hasattr(result.behaviorHints, "videoSize")
+                    else 0
+                )
+                links = ["magnet:?xt=urn:btih:" + info_hash + "&dn=&tr="]
+                seeds = (
+                    int(regex.search(r"(?<=👤 )([0-9]+)", result.description).group())
+                    if regex.search(r"(?<=👤 )([1-9]+)", result.description)
+                    else 0
+                )
+                source = (
+                    (regex.search(r"(?<=🔗 )(.*)(?=\n|$)", result.description).group())
+                    if regex.search(r"(?<=🔗 )(.*)(?=\n|$)", result.description)
+                    else "unknown"
+                )
+                scraped_releases += [
+                    releases.release("[mediafusion: " + source + "]", "torrent", title, [], size, links, seeds)
+                ]
             except Exception as e:
-                ui_print('[mediafusion] stream parsing error: ' + str(e))
+                ui_print("[mediafusion] stream parsing error: " + str(e))
                 continue
     return scraped_releases
 
@@ -227,41 +247,20 @@ def _get_encrypted_string(session: requests.Session) -> str:
     payload = {
         "streaming_provider": None,
         "selected_catalogs": [],
-        "selected_resolutions": ["4k","2160p","1440p","1080p","720p","576p","480p","360p","240p",None],
+        "selected_resolutions": ["4k", "2160p", "1440p", "1080p", "720p", "576p", "480p", "360p", "240p", None],
         "enable_catalogs": False,
         "enable_imdb_metadata": True,
         "max_size": "inf",
         "show_full_torrent_name": True,
         "max_streams_per_resolution": 50,
         "torrent_sorting_priority": [
-            {
-                "key": "language",
-                "direction": "desc"
-            },
-            {
-                "key": "cached",
-                "direction": "desc"
-            },
-            {
-                "key": "resolution",
-                "direction": "desc"
-            },
-            {
-                "key": "quality",
-                "direction": "desc"
-            },
-            {
-                "key": "size",
-                "direction": "desc"
-            },
-            {
-                "key": "seeders",
-                "direction": "desc"
-            },
-            {
-                "key": "created_at",
-                "direction": "desc"
-            }
+            {"key": "language", "direction": "desc"},
+            {"key": "cached", "direction": "desc"},
+            {"key": "resolution", "direction": "desc"},
+            {"key": "quality", "direction": "desc"},
+            {"key": "size", "direction": "desc"},
+            {"key": "seeders", "direction": "desc"},
+            {"key": "created_at", "direction": "desc"},
         ],
         "show_language_country_flag": False,
         "nudity_filter": ["Disable"],
@@ -296,25 +295,19 @@ def _get_encrypted_string(session: requests.Session) -> str:
             "Turkish",
             "Greek",
             "Swedish",
-            None
+            None,
         ],
-        "quality_filter": [
-            "BluRay/UHD",
-            "WEB/HD",
-            "DVD/TV/SAT",
-            "CAM/Screener",
-            "Unknown"
-        ],
+        "quality_filter": ["BluRay/UHD", "WEB/HD", "DVD/TV/SAT", "CAM/Screener", "Unknown"],
         "mediaflow_config": None,
         "rpdb_config": None,
         "live_search_streams": False,
-        "contribution_streams": False
+        "contribution_streams": False,
     }
 
     if api_password != "":
         payload |= {"api_password": api_password}
 
-    response = request(post,session, f"{base_url}/encrypt-user-data", payload)
+    response = request(post, session, f"{base_url}/encrypt-user-data", payload)
     if not hasattr(response, "encrypted_str"):
         raise Exception("[mediafusion] Unable to retrieve encrypted string")
     return response.encrypted_str

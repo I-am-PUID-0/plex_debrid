@@ -13,24 +13,27 @@ session = custom_session()
 
 def get(url):
     headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36'}
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+    }
     try:
         ui_print(f"[torrentio] GET url: {url} ...", ui_settings.debug)
         response = session.get(url, headers=headers, timeout=60)
         ui_print("done", ui_settings.debug)
         if hasattr(response, "status_code") and response.status_code != 200:
-            ui_print(f'[torrentio] error {str(response.status_code)}: failed response from torrentio. {response.content.decode("utf-8")}')
-        response = json.loads(
-            response.content, object_hook=lambda d: SimpleNamespace(**d))
+            ui_print(
+                f'[torrentio] error {str(response.status_code)}: failed response from torrentio. {response.content.decode("utf-8")}'
+            )
+        response = json.loads(response.content, object_hook=lambda d: SimpleNamespace(**d))
         return response
     except Exception as e:
-        ui_print('[torrentio] error: ' + str(e))
+        ui_print("[torrentio] error: " + str(e))
         return None
 
 
 def setup(cls, new=False):
     from settings import settings_list
     from scraper.services import active
+
     settings = []
     for category, allsettings in settings_list:
         for setting in allsettings:
@@ -45,7 +48,7 @@ def setup(cls, new=False):
             print("0) Back")
             indices = []
             for index, setting in enumerate(settings):
-                print(str(index + 1) + ') ' + setting.name)
+                print(str(index + 1) + ") " + setting.name)
                 indices += [str(index + 1)]
             print()
             if settings == []:
@@ -59,7 +62,7 @@ def setup(cls, new=False):
                 if not cls.name in active:
                     active += [cls.name]
                 back = True
-            elif choice == '0':
+            elif choice == "0":
                 back = True
     else:
         if not cls.name in active:
@@ -68,30 +71,35 @@ def setup(cls, new=False):
 
 def scrape(query, altquery):
     from scraper.services import active
+
     scraped_releases = []
-    if not 'torrentio' in active:
+    if not "torrentio" in active:
         return scraped_releases
     global base_url
-    if not base_url.endswith('/'):
-        base_url += '/'
+    if not base_url.endswith("/"):
+        base_url += "/"
     if altquery == "(.*)":
         altquery = query
-    type = ("show" if regex.search(
-        r'(S[0-9]|complete|S\?[0-9])', altquery, regex.I) else "movie")
-    opts = default_opts.split(
-        "/")[-2] if default_opts.endswith("manifest.json") else ""
+    type = "show" if regex.search(r"(S[0-9]|complete|S\?[0-9])", altquery, regex.I) else "movie"
+    opts = default_opts.split("/")[-2] if default_opts.endswith("manifest.json") else ""
     if type == "show":
-        s = (regex.search(r'(?<=S)([0-9]+)', altquery, regex.I).group()
-             if regex.search(r'(?<=S)([0-9]+)', altquery, regex.I) else None)
-        e = (regex.search(r'(?<=E)([0-9]+)', altquery, regex.I).group()
-             if regex.search(r'(?<=E)([0-9]+)', altquery, regex.I) else None)
+        s = (
+            regex.search(r"(?<=S)([0-9]+)", altquery, regex.I).group()
+            if regex.search(r"(?<=S)([0-9]+)", altquery, regex.I)
+            else None
+        )
+        e = (
+            regex.search(r"(?<=E)([0-9]+)", altquery, regex.I).group()
+            if regex.search(r"(?<=E)([0-9]+)", altquery, regex.I)
+            else None
+        )
         if s == None or int(s) == 0:
             s = 1
         if e == None or int(e) == 0:
             e = 1
     plain_text = ""
-    if regex.search(r'(tt[0-9]+)', altquery, regex.I):
-        query = regex.search(r'(tt[0-9]+)', altquery, regex.I).group()
+    if regex.search(r"(tt[0-9]+)", altquery, regex.I):
+        query = regex.search(r"(tt[0-9]+)", altquery, regex.I).group()
     else:
         plain_text = copy.deepcopy(query)
         try:
@@ -116,11 +124,10 @@ def scrape(query, altquery):
                     meta = get(url)
                 query = meta.metas[0].imdb_id
             except Exception as e:
-                ui_print('[torrentio] error: could not find IMDB ID. ' + str(e))
+                ui_print("[torrentio] error: could not find IMDB ID. " + str(e))
                 return scraped_releases
     if type == "movie":
-        url = base_url + opts + \
-            ("/" if len(opts) > 0 else "") + 'stream/movie/' + query + '.json'
+        url = base_url + opts + ("/" if len(opts) > 0 else "") + "stream/movie/" + query + ".json"
         response = get(url)
         if not hasattr(response, "streams") or len(response.streams) == 0:
             type = "show"
@@ -132,37 +139,64 @@ def scrape(query, altquery):
                     meta = get(url)
                     query = meta.metas[0].imdb_id
                 except Exception as e:
-                    ui_print('[torrentio] error: could not find IMDB ID. ' + str(e))
+                    ui_print("[torrentio] error: could not find IMDB ID. " + str(e))
                     return scraped_releases
     if type == "show":
-        url = base_url + opts + \
-            ("/" if len(opts) > 0 else "") + 'stream/series/' + \
-            query + ':' + str(int(s)) + ':' + str(int(e)) + '.json'
+        url = (
+            base_url
+            + opts
+            + ("/" if len(opts) > 0 else "")
+            + "stream/series/"
+            + query
+            + ":"
+            + str(int(s))
+            + ":"
+            + str(int(e))
+            + ".json"
+        )
         response = get(url)
     if not hasattr(response, "streams"):
         try:
             if not response == None:
-                ui_print('[torrentio] error: ' + str(response))
+                ui_print("[torrentio] error: " + str(response))
         except Exception as e:
-            ui_print('[torrentio] error: unknown error. ' + str(e))
+            ui_print("[torrentio] error: unknown error. " + str(e))
         return scraped_releases
     elif len(response.streams) == 1 and not hasattr(response.streams[0], "infoHash"):
-        ui_print('[torrentio] error: "' + response.streams[0].name.replace('\n',
-                 ' ') + '" - ' + response.streams[0].title.replace('\n', ' '))
+        ui_print(
+            '[torrentio] error: "'
+            + response.streams[0].name.replace("\n", " ")
+            + '" - '
+            + response.streams[0].title.replace("\n", " ")
+        )
         return scraped_releases
     ui_print(f"[torrentio] found {str(len(response.streams))} streams", ui_settings.debug)
     for result in response.streams:
         try:
-            title = result.title.split('\n')[0].replace(' ', '.')
-            size = (float(regex.search(r'(?<=💾 )([0-9]+.?[0-9]+)(?= GB)', result.title).group()) if regex.search(r'(?<=💾 )([0-9]+.?[0-9]+)(?= GB)', result.title) else float(
-                regex.search(r'(?<=💾 )([0-9]+.?[0-9]+)(?= MB)', result.title).group())/1000 if regex.search(r'(?<=💾 )([0-9]+.?[0-9]+)(?= MB)', result.title) else 0)
-            links = ['magnet:?xt=urn:btih:' + result.infoHash + '&dn=&tr=']
-            seeds = (int(regex.search(r'(?<=👤 )([0-9]+)', result.title).group(
-            )) if regex.search(r'(?<=👤 )([1-9]+)', result.title) else 0)
-            source = ((regex.search(r'(?<=⚙️ )(.*)(?=\n|$)', result.title).group())
-                      if regex.search(r'(?<=⚙️ )(.*)(?=\n|$)', result.title) else "unknown")
-            scraped_releases += [releases.release(
-                '[torrentio: '+source+']', 'torrent', title, [], size, links, seeds)]
+            title = result.title.split("\n")[0].replace(" ", ".")
+            size = (
+                float(regex.search(r"(?<=💾 )([0-9]+.?[0-9]+)(?= GB)", result.title).group())
+                if regex.search(r"(?<=💾 )([0-9]+.?[0-9]+)(?= GB)", result.title)
+                else (
+                    float(regex.search(r"(?<=💾 )([0-9]+.?[0-9]+)(?= MB)", result.title).group()) / 1000
+                    if regex.search(r"(?<=💾 )([0-9]+.?[0-9]+)(?= MB)", result.title)
+                    else 0
+                )
+            )
+            links = ["magnet:?xt=urn:btih:" + result.infoHash + "&dn=&tr="]
+            seeds = (
+                int(regex.search(r"(?<=👤 )([0-9]+)", result.title).group())
+                if regex.search(r"(?<=👤 )([1-9]+)", result.title)
+                else 0
+            )
+            source = (
+                (regex.search(r"(?<=⚙️ )(.*)(?=\n|$)", result.title).group())
+                if regex.search(r"(?<=⚙️ )(.*)(?=\n|$)", result.title)
+                else "unknown"
+            )
+            scraped_releases += [
+                releases.release("[torrentio: " + source + "]", "torrent", title, [], size, links, seeds)
+            ]
         except:
             continue
     return scraped_releases
