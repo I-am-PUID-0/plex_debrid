@@ -4,7 +4,14 @@ RUN adduser -D -h /home/appuser appuser
 
 WORKDIR /home/appuser
 
-RUN apk add --no-cache curl build-base libffi-dev openssl-dev
+RUN apk add --no-cache \
+    curl \
+    build-base \
+    libffi-dev \
+    openssl-dev \
+    python3-dev \
+    libnsl \
+    libc-dev
 
 ENV POETRY_HOME="/home/appuser/.poetry"
 ENV PATH="$POETRY_HOME/bin:$PATH"
@@ -15,7 +22,7 @@ COPY --chown=appuser:appuser . .
 
 RUN python3 -m pip install --upgrade pip setuptools==70.0.0
 
-RUN poetry install --no-root
+RUN poetry install --no-root --without dev
 
 USER appuser
 
