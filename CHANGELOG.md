@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.5.1](https://github.com/I-am-PUID-0/plex_debrid/compare/3.5.0...3.5.1) (2025-04-21)
+
+
+### 🤡 Other Changes
+
+* **deps:** bump pydantic-settings from 2.9.0 to 2.9.1 ([#8](https://github.com/I-am-PUID-0/plex_debrid/issues/8)) ([7759719](https://github.com/I-am-PUID-0/plex_debrid/commit/77597194db38424862af7517dff67db24e96d016))
+* **deps:** bump uvicorn from 0.34.1 to 0.34.2 ([#10](https://github.com/I-am-PUID-0/plex_debrid/issues/10)) ([87a5a5a](https://github.com/I-am-PUID-0/plex_debrid/commit/87a5a5ae5d8772937834b1e77f9178c18c9921b7))
+
+
+### 📖 Documentation
+
+* update README.md ([dfbf9f9](https://github.com/I-am-PUID-0/plex_debrid/commit/dfbf9f931d88b090a4df84fa5789ddc4dd21e06c))
+
 ## [3.5.0](https://github.com/I-am-PUID-0/plex_debrid/compare/3.4.0...3.5.0) (2025-04-18)
 
 
